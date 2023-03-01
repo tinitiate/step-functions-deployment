@@ -1,0 +1,111 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Check Inventory",
+  "States": {
+    "Check Inventory": {
+      "Type": "Task",
+      "Resource": "${CheckInventoryFunctionArn}",
+      "Retry": [
+        {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 15,
+            "MaxAttempts": 5,
+            "BackoffRate": 1.5
+        }
+      ],
+      "Next": "Items Available?"
+    },
+    "Items Available?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.item.num_of_items",
+          "NumericGreaterThanPath": "$.inventory.num_of_items",
+          "Next": "Cancel Order"
+        }
+      ],
+      "Default": "Parallel"
+    },
+    "Cancel Order": {
+      "Type": "Task",
+      "Resource": "${CancelOrderFunctionArn}",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Fail"
+    },
+    "Fail": {
+      "Type": "Fail"
+    },
+    "Parallel": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "Mark Order Complete",
+          "States": {
+            "Mark Order Complete": {
+              "Type": "Task",
+              "Resource": "${OrderCompleteFunctionArn}",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "Update Inventory",
+          "States": {
+            "Update Inventory": {
+              "Type": "Task",
+              "Resource": "${UpdateInventoryFunctionArn}",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "End": true
+            }
+          }
+        }
+      ],
+      "Next": "Success"
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  }
+}

@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  step-functions
+
+  Sample SAM Template for step-functions
+
+Resources:
+  OrderProcessingApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+  CheckInventoryFunctionConnector:
+    Type: AWS::Serverless::Connector 
+    Properties:
+      Source:
+        Id: OrderProcessingStateMachine
+      Destination:
+        Id: CheckInventoryFunction
+      Permissions:
+        - Write
+
+  UpdateInventoryFunctionConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: OrderProcessingStateMachine
+      Destination:
+        Id: UpdateInventoryFunction
+      Permissions:
+        - Write
+
+  OrderCompleteFunctionConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: OrderProcessingStateMachine
+      Destination:
+        Id: OrderCompleteFunction
+      Permissions:
+        - Write
+  
+  CancelOrderFunctionConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: OrderProcessingStateMachine
+      Destination:
+        Id: CancelOrderFunction
+      Permissions:
+        - Write
+  
+
+  OrderProcessingStateMachine:
+    Type: AWS::Serverless::StateMachine     
+    Properties:
+      DefinitionUri: statemachine/order_processing.asl.json
+      DefinitionSubstitutions:
+        CheckInventoryFunctionArn: !GetAtt CheckInventoryFunction.Arn
+        UpdateInventoryFunctionArn: !GetAtt UpdateInventoryFunction.Arn
+        OrderCompleteFunctionArn: !GetAtt OrderCompleteFunction.Arn      
+        CancelOrderFunctionArn: !GetAtt CancelOrderFunction.Arn      
+      Events:
+        ValidationApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /validate
+            RestApiId:
+              Ref: OrderProcessingApi
+
+  CheckInventoryFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: functions/check_inventory/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - arn:aws:iam::218058812834:policy/dynamo_db_crud
+
+  UpdateInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/update_inventory/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - arn:aws:iam::218058812834:policy/dynamo_db_crud
+
+  OrderCompleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/order_complete/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - arn:aws:iam::218058812834:policy/dynamo_db_crud
+  
+  CancelOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/cancel_order/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+
+  
+
+Outputs:
+  OrderProcessingStateMachineArn:
+    Description: "Order Processing State machine ARN"
+    Value: !Ref OrderProcessingStateMachine
+  OrderProcessingStateMachineRoleArn:
+    Description: "IAM Role created for Order Processing State machine based on the specified SAM Policy Templates"
+    Value: !GetAtt OrderProcessingStateMachineRole.Arn
+  OrderProcessingAPIUrl:
+    Description: "url to call the Order Processing state machine"
+    Value: !Sub https://${OrderProcessingApi}.execute-api.${AWS::Region}.amazonaws.com/dev/
