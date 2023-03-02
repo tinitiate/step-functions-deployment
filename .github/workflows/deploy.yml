@@ -32,11 +32,13 @@ jobs:
         run: pip install aws-sam-cli
 
       - name: Deploy OrderProcessing stack
-        run: sam deploy \
+        run: |
+          sam deploy \
           --template-file template.yaml \
           --stack-name OrderProcessing \
           --capabilities CAPABILITY_IAM \
           --parameter-overrides \
-            UserPoolArn=${{ env.USER_POOL_ARN }} \
-            DynamoDBPolicyArn=${{ env.DYNAMODB_POLICY_ARN }} \
-          --s3-bucket ${{ env.S3_BUCKET_NAME }}
+          UserPoolArn=${{ secrets.USER_POOL_ARN }} \
+          DynamoDBPolicyArn=${{ secrets.DYNAMODB_POLICY_ARN }} \
+          --s3-bucket ${{ secrets.S3_BUCKET_NAME }}
+
