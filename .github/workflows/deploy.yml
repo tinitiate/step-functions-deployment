@@ -31,7 +31,7 @@ jobs:
         run: pip install aws-sam-cli
 
       - name: Deploy OrderProcessing stack
-        run: sam deploy --template-file template_API.yaml --stack-name OrderProcessing --capabilities CAPABILITY_IAM --parameter-overrides UserPoolArn=${{ env.USER_POOL_ARN }} DynamoDBPolicyArn=${{ env.DYNAMODB_POLICY_ARN }}
+        run: sam deploy --template-file template.yaml --stack-name OrderProcessing --capabilities CAPABILITY_IAM --parameter-overrides UserPoolArn=${{ env.USER_POOL_ARN }} DynamoDBPolicyArn=${{ env.DYNAMODB_POLICY_ARN }}
       
       - name: Deploy OrderProcessing stack
         run: |
