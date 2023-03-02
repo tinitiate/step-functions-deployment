@@ -5,11 +5,26 @@ Description: >
 
   Sample SAM Template for step-functions
 
+Parameters:
+  UserPoolArn:
+    Type: String
+    Description: ARN of the Cognito User Pool to use for authentication
+    Default: ''
+  DynamoDBPolicyArn:
+    Type: String
+    Description: The ARN of the IAM policy to be attached to the DynamoDB Lambda functions
+
+
 Resources:
   OrderProcessingApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: dev
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !Ref UserPoolArn
   CheckInventoryFunctionConnector:
     Type: AWS::Serverless::Connector 
     Properties:
@@ -75,8 +90,10 @@ Resources:
       CodeUri: functions/check_inventory/
       Handler: app.lambda_handler
       Runtime: python3.9
-      Policies:
-        - arn:aws:iam::218058812834:policy/dynamo_db_crud
+      Policies: 
+         - !Ref DynamoDBPolicyArn
+  
+
 
   UpdateInventoryFunction:
     Type: AWS::Serverless::Function
@@ -84,8 +101,8 @@ Resources:
       CodeUri: functions/update_inventory/
       Handler: app.lambda_handler
       Runtime: python3.9
-      Policies:
-        - arn:aws:iam::218058812834:policy/dynamo_db_crud
+      Policies: 
+         - !Ref DynamoDBPolicyArn
 
   OrderCompleteFunction:
     Type: AWS::Serverless::Function
@@ -93,8 +110,8 @@ Resources:
       CodeUri: functions/order_complete/
       Handler: app.lambda_handler
       Runtime: python3.9
-      Policies:
-        - arn:aws:iam::218058812834:policy/dynamo_db_crud
+      Policies: 
+         - !Ref DynamoDBPolicyArn
   
   CancelOrderFunction:
     Type: AWS::Serverless::Function
@@ -102,6 +119,8 @@ Resources:
       CodeUri: functions/cancel_order/
       Handler: app.lambda_handler
       Runtime: python3.9
+      Policies: 
+         - !Ref DynamoDBPolicyArn
 
   
 
