@@ -10,13 +10,13 @@ def lambda_handler(event, context):
 
 
     quantity_in_stock = inventory-quantity
-    print(f'Updating inventory for item {item_no}...')
+    print(f'Updating inventory for items {item_no}...')
     
     # update inventory in DynamoDB
     update_inventory(item_no, quantity_in_stock)
     
     return {
-        'message': f'Inventory updated for item {item_no}'
+        'message': f'Inventory updated for items {item_no}'
     }
 
 def update_inventory(item_no, quantity):
