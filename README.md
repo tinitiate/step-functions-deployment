@@ -8,7 +8,7 @@
 - The sam deploy command is used to deploy the OrderProcessing stack using AWS SAM.
 - The sam deploy command is passed the following parameters:
   - template-file: The path to the SAM template file
-  - stack-name: The name of the CloudFormation stack to create/update
+  - stack-name: The name of the Sam Template (CloudFormation) stack to create/update
   - capabilities: The capabilities required by CloudFormation to create/update the stack
   - parameter-overrides: The values for stack parameters defined in the template file
   - s3-bucket: The name of the S3 bucket to upload deployment artifacts
