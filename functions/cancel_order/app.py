@@ -1,4 +1,5 @@
 import boto3
+# This is a comment.
 
 dynamodb = boto3.resource('dynamodb')
 
